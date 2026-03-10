@@ -1,39 +1,44 @@
-package com.clientproject.launcher;
+package com.clientproject.client.visual;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import com.clientproject.client.modules.BaseModule;
+import com.clientproject.client.modules.ModuleCategory;
 
-public final class ClientLauncher {
-    private static final String MC_MAIN_CLASS = "net.minecraft.client.main.Main";
+public final class OptiFineUltraModule extends BaseModule {
+    private static final int MIN_RENDER_DISTANCE = 2;
+    private static final int MAX_RENDER_DISTANCE = 64;
 
-    public LaunchPlan buildLaunchPlan(ClientLaunchConfig config, LauncherProfile profile) throws IOException {
-        RuntimePathsResolver resolver = new RuntimePathsResolver();
-        Path versionJar = resolver.resolveVersionJar(config.gameDirectory(), config.minecraftVersion());
-        List<Path> libraries = resolver.resolveLibraries(profile.librariesDirectory());
+    private boolean shaders = false;
+    private boolean zoom = true;
+    private int renderDistanceChunks = 8;
 
-        List<String> command = new ArrayList<>();
-        command.add(config.javaExecutable());
-        command.addAll(config.jvmArgs());
-        command.add("-cp");
-        command.add(toClasspath(versionJar, libraries));
-        command.add(MC_MAIN_CLASS);
-        command.addAll(config.gameArgs());
-
-        return new LaunchPlan(config.gameDirectory(), command);
+    public OptiFineUltraModule() {
+        super("optifine_ultra", "OptiFine Ultra", ModuleCategory.VISUAL, true);
     }
 
-    public Process launch(LaunchPlan plan) throws IOException {
-        return new ProcessOrchestrator().start(plan);
+    public boolean shaders() {
+        return shaders;
     }
 
-    private String toClasspath(Path versionJar, List<Path> libraries) {
-        String separator = System.getProperty("path.separator");
-        StringBuilder classpath = new StringBuilder(versionJar.toString());
-        for (Path library : libraries) {
-            classpath.append(separator).append(library);
+    public void setShaders(boolean shaders) {
+        this.shaders = shaders;
+    }
+
+    public boolean zoom() {
+        return zoom;
+    }
+
+    public void setZoom(boolean zoom) {
+        this.zoom = zoom;
+    }
+
+    public int renderDistanceChunks() {
+        return renderDistanceChunks;
+    }
+
+    public void setRenderDistanceChunks(int renderDistanceChunks) {
+        if (renderDistanceChunks < MIN_RENDER_DISTANCE || renderDistanceChunks > MAX_RENDER_DISTANCE) {
+            throw new IllegalArgumentException("renderDistanceChunks out of range");
         }
-        return classpath.toString();
+        this.renderDistanceChunks = renderDistanceChunks;
     }
 }

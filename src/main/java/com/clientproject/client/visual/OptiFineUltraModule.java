@@ -42,3 +42,4 @@ public final class OptiFineUltraModule extends BaseModule {
         this.renderDistanceChunks = renderDistanceChunks;
     }
 }
+}
