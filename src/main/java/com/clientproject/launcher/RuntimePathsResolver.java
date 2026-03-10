@@ -4,25 +4,29 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 public final class RuntimePathsResolver {
-    public Path resolveVersionJar(Path gameDirectory, String minecraftVersion) {
-        return gameDirectory.resolve("versions").resolve(minecraftVersion).resolve(minecraftVersion + ".jar");
+
+    public List<Path> resolveLibraries(Path libsDir) throws IOException {
+        List<Path> libs = new ArrayList<>();
+
+        if (Files.exists(libsDir)) {
+            try (var stream = Files.walk(libsDir)) {
+                stream
+                        .filter(p -> Files.isRegularFile(p))
+                        .filter(p -> p.toString().endsWith(".jar"))
+                        .forEach(libs::add);
+            }
+        }
+
+        return libs;
     }
 
-    public List<Path> resolveLibraries(Path librariesDirectory) throws IOException {
-        if (!Files.exists(librariesDirectory)) {
-            return List.of();
-        }
-        List<Path> jars = new ArrayList<>();
-        try (Stream<Path> stream = Files.walk(librariesDirectory)) {
-            stream.filter(path -> path.toString().endsWith(".jar"))
-                    .sorted(Comparator.comparing(Path::toString))
-                    .forEach(jars::add);
-        }
-        return jars;
+    public Path resolveVersionJar(Path gameDir, String version) {
+        return gameDir
+                .resolve("versions")
+                .resolve(version)
+                .resolve(version + ".jar");
     }
 }
