@@ -1,13 +1,38 @@
 package com.clientproject.launcher;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClientLauncher {
 
     public LaunchPlan buildLaunchPlan(ClientLaunchConfig config, LauncherProfile profile) {
-        return new LaunchPlan(config.getGameDir(), profile);
+
+        List<String> command = new ArrayList<>();
+
+        command.add(profile.javaExecutable().toString());
+
+        command.add("-Xms" + profile.minMemoryMb() + "M");
+        command.add("-Xmx" + profile.maxMemoryMb() + "M");
+
+        command.add("-jar");
+        command.add("client.jar"); // placeholder until the real client jar is wired
+
+        command.add("--username");
+        command.add(profile.username());
+
+        command.add("--accessToken");
+        command.add(profile.accessToken());
+
+        return new LaunchPlan(config.gameDirectory(), command);
     }
 
-    public void launch(LaunchPlan plan) {
-        System.out.println("Launching client...");
-        System.out.println(plan);
+    public void launch(LaunchPlan plan) throws Exception {
+
+        ProcessBuilder builder = new ProcessBuilder(plan.command());
+        builder.directory(plan.workingDirectory().toFile());
+        builder.inheritIO();
+
+        Process process = builder.start();
+        process.waitFor();
     }
 }
