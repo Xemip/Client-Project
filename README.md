@@ -1,6 +1,6 @@
 # X Tweaks — Minecraft 1.8.9 PvP/Performance Client Foundation
 
-X Tweaks is a **1.8.9-focused performance client foundation** with modular features, launcher scaffolding, installer packaging, and authentication plumbing.
+X Tweaks is a **1.8.9-focused performance client foundation** with modular features, launcher scaffolding, installer packaging, authentication plumbing, and updater/session persistence primitives.
 
 ## Important policy note
 X Tweaks in this repository supports:
@@ -61,10 +61,9 @@ java -cp target/classes com.clientproject.launcher.LauncherMain gui
 
 For Microsoft login commands, set `XTWEAKS_MS_CLIENT_ID` first.
 
-
 ## Troubleshooting
 
-- If `mvn` fails with plugin download errors (403/timeout), retry from a network with Maven Central access or use the manual `javac`/`jar` fallback shown above.
+- If `mvn` fails with plugin download errors (403/timeout), retry from a network with Maven Central access or use the manual `javac`/`jar` fallback shown below.
 - If `ms-login-start` fails, verify `XTWEAKS_MS_CLIENT_ID` is set in your shell before launching.
 - If `play --dry-run` fails due to missing version jar, place the `1.8.9.jar` under `<gameDir>/versions/1.8.9/`.
 
@@ -73,6 +72,10 @@ For Microsoft login commands, set `XTWEAKS_MS_CLIENT_ID` first.
 ```bash
 mvn -DskipTests package
 ```
+
+Output target (shade plugin):
+- `target/client-project-launcher.jar`
+- Main class: `com.clientproject.launcher.LauncherMain`
 
 If your environment blocks Maven downloads, fallback manual packaging works:
 
@@ -106,7 +109,6 @@ Microsoft login commands:
 - `java -cp target/classes com.clientproject.launcher.LauncherMain ms-login-start`
 - `java -cp target/classes com.clientproject.launcher.LauncherMain ms-login-complete <username> <deviceCode>`
 
-
 ## Prompt 3 status (production auth chain)
 - Microsoft login completion now executes full chain:
   1) Microsoft OAuth token
@@ -116,7 +118,6 @@ Microsoft login commands:
   5) Minecraft profile fetch
 - `SessionProfile` now stores the Minecraft profile id (`playerId`).
 
-
 ## Prompt 4 status (installer hardening)
 Installer bundle now includes:
 - Real install/uninstall scripts for Linux/macOS and Windows
@@ -124,7 +125,6 @@ Installer bundle now includes:
 - Rollback-on-failure behavior during install
 - Payload launcher jar deployment to user install directory
 - Manifest metadata fields for installer version + bundle entry inventory
-
 
 ## Prompt 5 status (QA + smoke pass)
 - Reproducible QA matrix: `docs/qa/test-matrix.md`
@@ -136,14 +136,12 @@ Run:
 ./scripts/qa/smoke_test.sh
 ```
 
-
 ## Prompt 6 status (launcher GUI polish)
 - Added launcher desktop GUI (`LauncherGuiMain`) with pages:
   - Home, Login, Settings, Diagnostics
 - CLI now supports:
   - `java -cp target/classes com.clientproject.launcher.LauncherMain gui`
 - GUI settings persist to launcher profile via `LauncherSettingsService`.
-
 
 ## Prompt 7 status (performance tuning pass)
 - Tuned PvP defaults:
@@ -153,7 +151,6 @@ Run:
 - Added benchmark script:
   - `./scripts/perf/benchmark.sh`
   - report: `target/bench/benchmark.txt`
-
 
 ## Prompt 8 status (release hardening)
 - Added secure local session persistence service:
@@ -174,4 +171,3 @@ Example update manifest JSON:
   "notes": "Performance and stability improvements"
 }
 ```
-
