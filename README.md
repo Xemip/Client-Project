@@ -61,6 +61,13 @@ java -cp target/classes com.clientproject.launcher.LauncherMain gui
 
 For Microsoft login commands, set `XTWEAKS_MS_CLIENT_ID` first.
 
+
+## Troubleshooting
+
+- If `mvn` fails with plugin download errors (403/timeout), retry from a network with Maven Central access or use the manual `javac`/`jar` fallback shown above.
+- If `ms-login-start` fails, verify `XTWEAKS_MS_CLIENT_ID` is set in your shell before launching.
+- If `play --dry-run` fails due to missing version jar, place the `1.8.9.jar` under `<gameDir>/versions/1.8.9/`.
+
 ## Build and package
 
 ```bash

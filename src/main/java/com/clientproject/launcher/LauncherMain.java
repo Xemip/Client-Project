@@ -107,7 +107,8 @@ public final class LauncherMain {
                     System.out.println("Launcher up to date: " + result.currentVersion());
                 }
             }
-            default -> printHelp();
+            case "help" -> printHelp();
+            default -> throw new IllegalArgumentException("Unknown command: " + command);
         }
     }
 
