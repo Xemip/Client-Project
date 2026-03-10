@@ -9,24 +9,32 @@ import java.util.List;
 public final class RuntimePathsResolver {
 
     public List<Path> resolveLibraries(Path libsDir) throws IOException {
-        List<Path> libs = new ArrayList<>();
+        List<Path> libraries = new ArrayList<>();
 
-        if (Files.exists(libsDir)) {
-            try (var stream = Files.walk(libsDir)) {
-                stream
-                        .filter(p -> Files.isRegularFile(p))
-                        .filter(p -> p.toString().endsWith(".jar"))
-                        .forEach(libs::add);
-            }
+        if (!Files.exists(libsDir)) {
+            return libraries;
         }
 
-        return libs;
+        try (var stream = Files.walk(libsDir)) {
+            stream
+                .filter(Files::isRegularFile)
+                .filter(p -> p.getFileName().toString().endsWith(".jar"))
+                .forEach(libraries::add);
+        }
+
+        return libraries;
     }
 
     public Path resolveVersionJar(Path gameDir, String version) {
-        return gameDir
+        Path jar = gameDir
                 .resolve("versions")
                 .resolve(version)
                 .resolve(version + ".jar");
+
+        if (!Files.exists(jar)) {
+            throw new IllegalStateException("Version jar not found: " + jar);
+        }
+
+        return jar;
     }
 }
