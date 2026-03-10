@@ -10,11 +10,14 @@ public class ClientLauncher {
         List<String> command = new ArrayList<>();
 
         command.add(profile.javaExecutable().toString());
+
         command.add("-Xms" + profile.minMemoryMb() + "M");
         command.add("-Xmx" + profile.maxMemoryMb() + "M");
 
-        command.add("-jar");
-        command.add("client.jar");
+        command.add("-cp");
+        command.add("libraries/*;versions/" + config.targetVersion() + "/" + config.targetVersion() + ".jar");
+
+        command.add("net.minecraft.client.main.Main");
 
         command.add("--username");
         command.add(profile.username());
