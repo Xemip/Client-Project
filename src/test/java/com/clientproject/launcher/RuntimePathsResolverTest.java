@@ -1,26 +1,38 @@
 package com.clientproject.launcher;
 
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class RuntimePathsResolver {
+import org.junit.jupiter.api.Test;
 
-    public List<Path> resolveLibraries(Path librariesDir) throws IOException {
-        try (Stream<Path> stream = Files.walk(librariesDir)) {
-            return stream
-                    .filter(p -> p.toString().endsWith(".jar"))
-                    .collect(Collectors.toList());
-        }
-    }
+class RuntimePathsResolverTest {
 
-    public Path resolveVersionJar(Path gameDir, String version) {
-        return gameDir
-                .resolve("versions")
-                .resolve(version)
-                .resolve(version + ".jar");
+    @Test
+    void resolvesLibrariesAndVersionJar() throws Exception {
+        Path root = Files.createTempDirectory("resolver-test");
+
+        Path libs = root.resolve("libs");
+        Files.createDirectories(libs);
+
+        Path libJar = libs.resolve("example.jar");
+        Files.createFile(libJar);
+
+        Path game = root.resolve("game");
+        Path versionDir = game.resolve("versions").resolve("1.8.9");
+        Files.createDirectories(versionDir);
+
+        Path versionJar = versionDir.resolve("1.8.9.jar");
+        Files.createFile(versionJar);
+
+        RuntimePathsResolver resolver = new RuntimePathsResolver();
+
+        List<Path> libraries = resolver.resolveLibraries(libs);
+        Path resolvedJar = resolver.resolveVersionJar(game, "1.8.9");
+
+        assertTrue(libraries.contains(libJar));
+        assertTrue(resolvedJar.equals(versionJar));
     }
 }
