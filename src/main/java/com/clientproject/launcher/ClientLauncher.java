@@ -10,12 +10,11 @@ public class ClientLauncher {
         List<String> command = new ArrayList<>();
 
         command.add(profile.javaExecutable().toString());
-
         command.add("-Xms" + profile.minMemoryMb() + "M");
         command.add("-Xmx" + profile.maxMemoryMb() + "M");
 
         command.add("-jar");
-        command.add("client.jar"); // placeholder until the real client jar is wired
+        command.add("client.jar");
 
         command.add("--username");
         command.add(profile.username());
