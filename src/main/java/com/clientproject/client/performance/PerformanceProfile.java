@@ -12,6 +12,10 @@ public record PerformanceProfile(
         int chunkUpdateBudget
 ) {
     public static PerformanceProfile defaultProfile() {
+        return pvpProfile();
+    }
+
+    public static PerformanceProfile pvpProfile() {
         return fromPreset(OptimizationPreset.competitivePvp());
     }
 

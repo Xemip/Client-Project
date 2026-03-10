@@ -9,8 +9,8 @@ import com.clientproject.auth.MinecraftAuthChainService;
 import com.clientproject.auth.OfflineAuthService;
 import com.clientproject.auth.SessionProfile;
 import com.clientproject.branding.Branding;
-import com.clientproject.multiplayer.MultiplayerAccessPolicy;
 import com.clientproject.launcher.ui.LauncherGuiMain;
+import com.clientproject.multiplayer.MultiplayerAccessPolicy;
 import com.clientproject.security.SessionPersistenceService;
 import com.clientproject.updater.UpdateCheckResult;
 import com.clientproject.updater.UpdateChecker;
@@ -21,6 +21,16 @@ public final class LauncherMain {
     }
 
     public static void main(String[] args) throws Exception {
+        try {
+            run(args);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            System.err.println(ex.getMessage());
+            printHelp();
+            System.exit(2);
+        }
+    }
+
+    private static void run(String[] args) throws Exception {
         Path launcherRoot = Path.of(System.getProperty("user.home"), ".x-tweaks");
         LauncherConfigStore store = new LauncherConfigStore();
         LauncherProfile profile = store.loadOrCreate(launcherRoot);

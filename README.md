@@ -27,6 +27,40 @@ It does **not** include cracked-client bypass logic for unauthorized online acce
 - Installer bundle generator (`InstallerPackager`, `InstallerMain`)
 - Output installer artifact: `target/X-Tweaks-installer.zip`
 
+## Quick start (download/install/use)
+
+1. Build the launcher jar:
+```bash
+mvn -DskipTests package
+```
+
+2. Build installer zip:
+```bash
+java -cp target/classes com.clientproject.installer.InstallerMain target/X-Tweaks-installer.zip
+```
+
+3. Install:
+   - Linux/macOS:
+```bash
+unzip -o target/X-Tweaks-installer.zip -d /tmp/x-tweaks-installer
+bash /tmp/x-tweaks-installer/X-Tweaks/install.sh
+```
+   - Windows (PowerShell):
+```powershell
+Expand-Archive target\X-Tweaks-installer.zip -DestinationPath $env:TEMP\x-tweaks-installer -Force
+& "$env:TEMP\x-tweaks-installer\X-Tweaks\install.bat"
+```
+
+4. Use launcher:
+```bash
+java -cp target/classes com.clientproject.launcher.LauncherMain profile-show
+java -cp target/classes com.clientproject.launcher.LauncherMain offline-login Player
+java -cp target/classes com.clientproject.launcher.LauncherMain play --dry-run
+java -cp target/classes com.clientproject.launcher.LauncherMain gui
+```
+
+For Microsoft login commands, set `XTWEAKS_MS_CLIENT_ID` first.
+
 ## Build and package
 
 ```bash

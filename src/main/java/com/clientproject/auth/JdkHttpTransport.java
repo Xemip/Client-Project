@@ -15,7 +15,7 @@ public final class JdkHttpTransport implements HttpTransport {
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(HttpRequest.BodyPublishers.ofString(formBody))
                 .build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        return send(request);
     }
 
     @Override
@@ -26,7 +26,7 @@ public final class JdkHttpTransport implements HttpTransport {
         if (bearerToken != null && !bearerToken.isBlank()) {
             builder.header("Authorization", "Bearer " + bearerToken);
         }
-        return client.send(builder.build(), HttpResponse.BodyHandlers.ofString()).body();
+        return send(builder.build());
     }
 
     @Override
@@ -37,6 +37,14 @@ public final class JdkHttpTransport implements HttpTransport {
         if (bearerToken != null && !bearerToken.isBlank()) {
             builder.header("Authorization", "Bearer " + bearerToken);
         }
-        return client.send(builder.build(), HttpResponse.BodyHandlers.ofString()).body();
+        return send(builder.build());
+    }
+
+    private String send(HttpRequest request) throws IOException, InterruptedException {
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() < 200 || response.statusCode() > 299) {
+            throw new IOException("HTTP request failed with status " + response.statusCode() + ": " + response.body());
+        }
+        return response.body();
     }
 }

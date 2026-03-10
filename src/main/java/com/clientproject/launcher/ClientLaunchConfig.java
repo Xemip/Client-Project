@@ -33,7 +33,8 @@ public record ClientLaunchConfig(
                         "--gameDir", profile.gameDirectory().toString(),
                         "--assetsDir", profile.assetsDirectory().toString(),
                         "--username", profile.username(),
-                        "--accessToken", profile.accessToken().isBlank() ? "0" : profile.accessToken())
+                        "--accessToken", profile.accessToken().isBlank() ? "0" : profile.accessToken(),
+                        "--userType", profile.authMode().name().toLowerCase())
         );
     }
 }

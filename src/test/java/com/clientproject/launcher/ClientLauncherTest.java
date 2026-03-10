@@ -18,7 +18,7 @@ final class ClientLauncherTest {
         Files.createFile(versionDir.resolve("1.8.9.jar"));
 
         LauncherProfile profile = new LauncherProfile(
-                "default", game, root.resolve("assets"), root.resolve("libs"), "java", 1024, 2048, "Player", "0", AuthMode.OFFLINE_LOCAL);
+                "default", game, root.resolve("assets"), root.resolve("libs"), "java", 1024, 2048, "Player", "", AuthMode.OFFLINE_LOCAL);
 
         ClientLaunchConfig config = ClientLaunchConfig.fromProfile(profile, "1.8.9");
         LaunchPlan plan = new ClientLauncher().buildLaunchPlan(config, profile);
@@ -26,5 +26,8 @@ final class ClientLauncherTest {
         assertEquals("java", plan.command().get(0));
         assertTrue(plan.command().contains("net.minecraft.client.main.Main"));
         assertTrue(plan.command().contains("--version"));
+        assertTrue(plan.command().contains("--userType"));
+        assertTrue(plan.command().contains("offline_local"));
+        assertTrue(plan.command().contains("-XX:MaxGCPauseMillis=40"));
     }
 }
