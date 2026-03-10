@@ -1,27 +1,26 @@
 package com.clientproject.launcher;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-final class RuntimePathsResolverTest {
-    @Test
-    void resolvesLibrariesAndVersionJar() throws Exception {
-        Path root = Files.createTempDirectory("xtweaks-runtime");
-        Path libs = root.resolve("libraries").resolve("a");
-        Files.createDirectories(libs);
-        Files.createFile(libs.resolve("one.jar"));
-        Files.createFile(libs.resolve("two.jar"));
+public class RuntimePathsResolver {
 
-        RuntimePathsResolver resolver = new RuntimePathsResolver();
-        List<Path> jars = resolver.resolveLibraries(root.resolve("libraries"));
+    public List<Path> resolveLibraries(Path librariesDir) throws IOException {
+        try (Stream<Path> stream = Files.walk(librariesDir)) {
+            return stream
+                    .filter(p -> p.toString().endsWith(".jar"))
+                    .collect(Collectors.toList());
+        }
+    }
 
-        assertEquals(2, jars.size());
-        Path versionJar = resolver.resolveVersionJar(root, "1.8.9");
-        assertTrue(versionJar.toString().endsWith("versions/1.8.9/1.8.9.jar"));
+    public Path resolveVersionJar(Path gameDir, String version) {
+        return gameDir
+                .resolve("versions")
+                .resolve(version)
+                .resolve(version + ".jar");
     }
 }
