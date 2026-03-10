@@ -1,5 +1,6 @@
 package com.clientproject.launcher;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +15,17 @@ public class ClientLauncher {
         command.add("-Xms" + profile.minMemoryMb() + "M");
         command.add("-Xmx" + profile.maxMemoryMb() + "M");
 
+        // Build classpath from runtime paths
+        Path libraries = profile.librariesDirectory();
+        Path versionJar = config.gameDirectory()
+                .resolve("versions")
+                .resolve(config.targetVersion())
+                .resolve(config.targetVersion() + ".jar");
+
+        String classpath = libraries.toString() + "/*;" + versionJar;
+
         command.add("-cp");
-        command.add("libraries/*;versions/" + config.targetVersion() + "/" + config.targetVersion() + ".jar");
+        command.add(classpath);
 
         command.add("net.minecraft.client.main.Main");
 
