@@ -1,20 +1,18 @@
 package com.clientproject.auth;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
-public final class JdkHttpTransport implements HttpTransport {
-    private final HttpClient client = HttpClient.newHttpClient();
+/**
+ * Thin HTTP abstraction used by auth and update flows.
+ */
+public interface HttpTransport {
+    String postForm(String url, String formBody) throws IOException, InterruptedException;
 
-    @Override
-    public String postForm(String url, String formBody) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(formBody))
-                .build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+    default String postJson(String url, String jsonBody, String bearerToken) throws IOException, InterruptedException {
+        throw new UnsupportedOperationException("postJson not implemented");
+    }
+
+    default String getJson(String url, String bearerToken) throws IOException, InterruptedException {
+        throw new UnsupportedOperationException("getJson not implemented");
     }
 }

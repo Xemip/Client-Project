@@ -1,49 +1,73 @@
-# Client-Project — Minecraft 1.8.9 PvP/Performance Client
+# X Tweaks — Minecraft 1.8.9 PvP/Performance Client Foundation
 
-This repo is now structured as a **1.8.9-targeted PvP/performance client core** with:
-- modular feature toggles,
-- launcher packaging,
+X Tweaks is a **1.8.9-focused performance client foundation** with modular features, launcher scaffolding, installer packaging, authentication plumbing, and updater/session persistence primitives.
+
+## Important policy note
+X Tweaks in this repository supports:
 - Microsoft account login flow scaffolding,
-- and explicit performance-mod integration planning.
+- local offline sessions for non-online/local use.
 
-## Target profile
-- Client profile: `Client-Project PvP`
-- Minecraft version: **1.8.9**
-- Focus: PvP responsiveness, FPS stability, low input latency.
+It does **not** include cracked-client bypass logic for unauthorized online access.
 
-## Included feature systems
+## What is implemented
 
-### Performance & Visuals
-- OptiFine Ultra module settings (shaders / zoom / render distance)
-- BetterSky, Particles Mod, Fullbright, Clear Glass/Water, NoHurtCam module toggles
-- Performance flags: Input Lag Reduction, Entity & Tile Culling, Lazy Data Loading, Smart Animations
+### Client modules & optimizations
+- Visual/performance/HUD/gameplay/chat module registry and grouped feature pack
+- PvP features: keystrokes, CPS, reach, combo, HUD overlays, toggle sprint/sneak, back view
+- Optimization primitives: smart animations flags, culling flags, lazy-load scheduler, frame-time smoother
 
-### HUD & Information
-- Keystrokes (KeyMod), CPS, Armor HUD, Status Effects HUD
-- FPS/Ping display, Reach display, Combo counter, TNT timer
-- `HudTracker` tracks CPS + combo + last reach in runtime.
+### Auth services
+- Microsoft OAuth device-code primitives (`MicrosoftAuthService`)
+- Local offline session support (`OfflineAuthService`)
+- Unified entrypoint facade (`AuthFacade`)
+- Multiplayer policy check requiring Microsoft-authenticated sessions (`MultiplayerAccessPolicy`)
 
-### Gameplay & Utility
-- ToggleSprint, ToggleSneak, BackView (360°)
-- Auto-GG / Auto-Thank
-- Chat customization (nickname highlights + color-code support)
+### Launcher and installer
+- Launcher command builder for 1.8.9 (`ClientLaunchConfig`, `ClientLauncher`, `LauncherMain`)
+- Installer bundle generator (`InstallerPackager`, `InstallerMain`)
+- Output installer artifact: `target/X-Tweaks-installer.zip`
 
-## Microsoft account login feature
-`MicrosoftAuthService` implements OAuth device-code flow primitives for launcher sign-in:
-1. Start device login (`startDeviceLogin`),
-2. Show user code and verification URL,
-3. Poll token endpoint (`pollForToken`),
-4. Use access token for downstream Minecraft/Xbox auth bridge.
+## Quick start (download/install/use)
 
-> Important: This repository currently provides the OAuth launcher-step implementation and token plumbing scaffold. Full production Minecraft auth chain (Xbox Live/XSTS/Minecraft services) should be completed in the next iteration.
+1. Build the launcher jar:
+```bash
+mvn -DskipTests package
+```
 
-## OptiFine + performance mod import handling
-`PerformanceModPack189` + `ModInstallerPlanner` define which integrations can be redistributed vs user-provided:
-- OptiFine 1.8.9 is marked **user-provided** (non-redistributable).
-- Other performance mods are planned as redistributable metadata entries.
+2. Build installer zip:
+```bash
+java -cp target/classes com.clientproject.installer.InstallerMain target/X-Tweaks-installer.zip
+```
 
-## Build & package launcher
-Create executable launcher JAR:
+3. Install:
+   - Linux/macOS:
+```bash
+unzip -o target/X-Tweaks-installer.zip -d /tmp/x-tweaks-installer
+bash /tmp/x-tweaks-installer/X-Tweaks/install.sh
+```
+   - Windows (PowerShell):
+```powershell
+Expand-Archive target\X-Tweaks-installer.zip -DestinationPath $env:TEMP\x-tweaks-installer -Force
+& "$env:TEMP\x-tweaks-installer\X-Tweaks\install.bat"
+```
+
+4. Use launcher:
+```bash
+java -cp target/classes com.clientproject.launcher.LauncherMain profile-show
+java -cp target/classes com.clientproject.launcher.LauncherMain offline-login Player
+java -cp target/classes com.clientproject.launcher.LauncherMain play --dry-run
+java -cp target/classes com.clientproject.launcher.LauncherMain gui
+```
+
+For Microsoft login commands, set `XTWEAKS_MS_CLIENT_ID` first.
+
+## Troubleshooting
+
+- If `mvn` fails with plugin download errors (403/timeout), retry from a network with Maven Central access or use the manual `javac`/`jar` fallback shown below.
+- If `ms-login-start` fails, verify `XTWEAKS_MS_CLIENT_ID` is set in your shell before launching.
+- If `play --dry-run` fails due to missing version jar, place the `1.8.9.jar` under `<gameDir>/versions/1.8.9/`.
+
+## Build and package
 
 ```bash
 mvn -DskipTests package
@@ -53,7 +77,97 @@ Output target (shade plugin):
 - `target/client-project-launcher.jar`
 - Main class: `com.clientproject.launcher.LauncherMain`
 
-## Run tests
+If your environment blocks Maven downloads, fallback manual packaging works:
+
+```bash
+mkdir -p target/classes
+javac -d target/classes $(find src/main/java -name '*.java')
+jar cfe target/client-project-launcher.jar com.clientproject.launcher.LauncherMain -C target/classes .
+java -cp target/classes com.clientproject.installer.InstallerMain target/X-Tweaks-installer.zip
+```
+
+## Test
+
 ```bash
 mvn test
+```
+
+## Delivery plan
+- Prompt 1 (current): Definition of Done and acceptance criteria are captured in `docs/prompt-01-definition-of-done.md`.
+- Next prompts implement launcher wiring, auth persistence, installer hardening, and end-user docs in that order.
+
+## Prompt 2 status (launcher runtime wiring)
+- Persistent profile config: `~/.x-tweaks/launcher-profile.properties`
+- Runtime command uses Minecraft main class + resolved classpath from version jar and libraries.
+- Launcher CLI:
+  - `java -cp target/classes com.clientproject.launcher.LauncherMain profile-show`
+  - `java -cp target/classes com.clientproject.launcher.LauncherMain offline-login <username>`
+  - `java -cp target/classes com.clientproject.launcher.LauncherMain multiplayer-check`
+  - `java -cp target/classes com.clientproject.launcher.LauncherMain play --dry-run`
+
+Microsoft login commands:
+- `java -cp target/classes com.clientproject.launcher.LauncherMain ms-login-start`
+- `java -cp target/classes com.clientproject.launcher.LauncherMain ms-login-complete <username> <deviceCode>`
+
+## Prompt 3 status (production auth chain)
+- Microsoft login completion now executes full chain:
+  1) Microsoft OAuth token
+  2) Xbox Live auth
+  3) XSTS token
+  4) Minecraft services login
+  5) Minecraft profile fetch
+- `SessionProfile` now stores the Minecraft profile id (`playerId`).
+
+## Prompt 4 status (installer hardening)
+Installer bundle now includes:
+- Real install/uninstall scripts for Linux/macOS and Windows
+- Launcher shortcut scripts in `bin/`
+- Rollback-on-failure behavior during install
+- Payload launcher jar deployment to user install directory
+- Manifest metadata fields for installer version + bundle entry inventory
+
+## Prompt 5 status (QA + smoke pass)
+- Reproducible QA matrix: `docs/qa/test-matrix.md`
+- Smoke runner script: `scripts/qa/smoke_test.sh`
+- Smoke report output: `target/qa/smoke-test-report.txt`
+
+Run:
+```bash
+./scripts/qa/smoke_test.sh
+```
+
+## Prompt 6 status (launcher GUI polish)
+- Added launcher desktop GUI (`LauncherGuiMain`) with pages:
+  - Home, Login, Settings, Diagnostics
+- CLI now supports:
+  - `java -cp target/classes com.clientproject.launcher.LauncherMain gui`
+- GUI settings persist to launcher profile via `LauncherSettingsService`.
+
+## Prompt 7 status (performance tuning pass)
+- Tuned PvP defaults:
+  - OptiFine shaders disabled by default, render distance = 8
+  - Launcher default max memory = 3072 MB
+  - Added JVM GC tuning args for lower pause profile
+- Added benchmark script:
+  - `./scripts/perf/benchmark.sh`
+  - report: `target/bench/benchmark.txt`
+
+## Prompt 8 status (release hardening)
+- Added secure local session persistence service:
+  - `SessionPersistenceService`
+  - `SecureTokenStore`
+- Added update checker plumbing:
+  - `UpdateChecker`, `UpdateInfo`, `UpdateCheckResult`
+- New launcher commands:
+  - `session-show`
+  - `session-clear`
+  - `check-updates [manifestUrl]`
+
+Example update manifest JSON:
+```json
+{
+  "latestVersion": "0.9.0",
+  "downloadUrl": "https://example.com/x-tweaks.zip",
+  "notes": "Performance and stability improvements"
+}
 ```
